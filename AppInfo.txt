@@ -1,0 +1,8 @@
+(Feb 5th)
+
+1.	Target users: Both Patients and Clinicians 
+2.	Core features for v1: Video calls, Chat, Appointment scheduling, Patient Medical Records (EMR-Lite), Payments, Doctor Schedule & Queue Management, Hospital Admin Dashboard,  Secure Data Access & Control
+3.	Mobile approach: Web app, PWA (installable web) and Native mobile (React Native)
+4.	Compliance level: General healthcare (non US)
+
+
