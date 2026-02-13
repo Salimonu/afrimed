@@ -6,6 +6,9 @@ password.txt
 #environment variables
 .env.local
 
+#sql queries
+supabase
+
 # dependencies
 /node_modules
 /.pnp
