@@ -1,3 +1,5 @@
+import LogoutButton from "./LogoutButton";
+
 type AppShellProps = {
   role: "patient" | "clinician" | "admin";
   title: string;
@@ -117,6 +119,7 @@ export default function AppShell({
               <button className="rounded-full bg-slate-900 px-5 py-2 text-white transition hover:bg-slate-800">
                 Start session
               </button>
+              <LogoutButton />
             </div>
           </header>
 

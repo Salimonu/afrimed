@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 
 const roles = [
   {
     key: "patient",
     title: "Patient access",
-    description: "Login with email or phone OTP.",
+    description: "Login with email and password.",
     href: "/auth/patient",
   },
   {
@@ -30,9 +31,12 @@ export default function AuthLanding() {
     <div className="page-surface min-h-screen text-slate-900">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 pb-16 pt-12 sm:px-10">
         <header className="glass-panel rounded-3xl p-8">
+          <div className="flex justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
             Afrimed access
           </p>
+          <p className="underline"> <Link href="/">Back Home</Link></p>
+          </div>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">
             Choose your portal
           </h1>

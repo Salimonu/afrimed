@@ -12,6 +12,26 @@ export default function AdminAuth() {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  async function redirectByRole() {
+    const { data } = await supabase.auth.getUser();
+    const role =
+      (data.user?.app_metadata?.role as string | undefined) ??
+      (data.user?.user_metadata?.role as string | undefined);
+
+    if (role === "patient") {
+      window.location.href = "/patient";
+      return;
+    }
+
+    if (role === "clinician") {
+      window.location.href = "/clinician";
+      return;
+    }
+
+    window.location.href = "/admin";
+  }
 
   async function handleSubmit() {
     setStatus("loading");
@@ -20,9 +40,13 @@ export default function AdminAuth() {
     const action =
       mode === "sign-in"
         ? supabase.auth.signInWithPassword({ email, password })
-        : supabase.auth.signUp({ email, password });
+        : supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { role: "admin" } },
+          });
 
-    const { error } = await action;
+    const { data, error } = await action;
 
     if (error) {
       setStatus("error");
@@ -30,7 +54,18 @@ export default function AdminAuth() {
       return;
     }
 
-    window.location.href = "/admin";
+    if (mode === "sign-up") {
+      await supabase.auth.updateUser({ data: { role: "admin" } });
+      if (!data.session) {
+        setToast(
+          "Check your email to confirm your account before signing in."
+        );
+        setStatus("idle");
+        return;
+      }
+    }
+
+    await redirectByRole();
   }
 
   return (
@@ -102,6 +137,11 @@ export default function AdminAuth() {
             <p className="mt-4 text-sm text-slate-600">{message}</p>
           )}
         </section>
+        {toast && (
+          <div className="fixed bottom-6 right-6 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 text-xs font-semibold text-slate-700 shadow-lg">
+            {toast}
+          </div>
+        )}
       </div>
     </div>
   );

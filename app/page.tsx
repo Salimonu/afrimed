@@ -1,4 +1,25 @@
-export default function Home() {
+import { redirect } from "next/navigation";
+import { createServerComponentClient } from "@/lib/supabase/server";
+
+export default async function Home() {
+  const supabase = await createServerComponentClient();
+  const { data } = await supabase.auth.getUser();
+  const role =
+    (data.user?.app_metadata?.role as string | undefined) ??
+    (data.user?.user_metadata?.role as string | undefined);
+
+  if (role === "patient") {
+    redirect("/patient");
+  }
+
+  if (role === "clinician") {
+    redirect("/clinician");
+  }
+
+  if (role === "admin") {
+    redirect("/admin");
+  }
+
   return (
     <div className="page-surface min-h-screen text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-24 px-6 pb-24 pt-10 sm:px-10">
@@ -20,9 +41,9 @@ export default function Home() {
             </button>
             <a
               className="rounded-full bg-slate-900 px-5 py-2 text-white transition hover:bg-slate-800"
-              href="/clinician"
+              href="/auth"
             >
-              Launch platform
+              Sign in
             </a>
           </div>
         </nav>
@@ -56,9 +77,9 @@ export default function Home() {
             >
               <a
                 className="rounded-full bg-slate-900 px-6 py-3 text-white transition hover:bg-slate-800"
-                href="/admin"
+                href="/auth"
               >
-                Build the MVP
+                Continue to portal
               </a>
               <a
                 className="rounded-full border border-slate-300 px-6 py-3 text-slate-700 transition hover:border-slate-900"
