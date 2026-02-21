@@ -47,3 +47,27 @@ export async function createServerComponentClient() {
     },
   });
 }
+
+// for clinical schema
+export async function createServerComponentClientClinical() {
+  const cookieStore = await cookies();
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    db:{schema: 'clinical'},
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+    cookies: {
+      get(name) {
+        return cookieStore.get(name)?.value;
+      },
+      set() {
+        // Server Components cannot modify cookies.
+      },
+      remove() {
+        // Server Components cannot modify cookies.
+      },
+    },
+  });
+}
