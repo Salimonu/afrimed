@@ -4,6 +4,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import TopToast from "./TopToast";
 
 type FormState = {
   first_name: string;
@@ -25,10 +26,7 @@ type FormState = {
   ethnicity: string;
   nationality: string;
   occupation: string;
-  date_of_registration: string;
 };
-
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const initialState: FormState = {
   first_name: "",
@@ -50,7 +48,6 @@ const initialState: FormState = {
   ethnicity: "",
   nationality: "",
   occupation: "",
-  date_of_registration: todayIso(),
 };
 
 export default function PatientBiodataForm() {
@@ -62,6 +59,10 @@ export default function PatientBiodataForm() {
     type: "idle" | "loading" | "success" | "error";
     message?: string;
   }>({ type: "idle" });
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -112,7 +113,6 @@ export default function PatientBiodataForm() {
         ethnicity: data.ethnicity ?? "",
         nationality: data.nationality ?? "",
         occupation: data.occupation ?? "",
-        date_of_registration: data.date_of_registration ?? todayIso(),
       });
     };
 
@@ -133,6 +133,8 @@ export default function PatientBiodataForm() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus({ type: "loading" });
+    setToast(null);
+    const registrationDate = new Date();
 
     const payload = {
       first_name: formData.first_name.trim(),
@@ -154,14 +156,13 @@ export default function PatientBiodataForm() {
       ethnicity: formData.ethnicity.trim(),
       nationality: formData.nationality.trim(),
       occupation: formData.occupation.trim(),
-      date_of_registration: formData.date_of_registration || null,
+      date_of_registration: registrationDate.toISOString().slice(0, 10),
     };
 
     if (!authUserId) {
-      setStatus({
-        type: "error",
-        message: "Missing user session. Please sign in again.",
-      });
+      const message = "Missing user session. Please sign in again.";
+      setStatus({ type: "error", message });
+      setToast({ type: "error", message });
       return;
     }
 
@@ -171,20 +172,22 @@ export default function PatientBiodataForm() {
       : await query.insert([{ ...payload, user_id: authUserId }]);
 
     if (error) {
-      setStatus({
-        type: "error",
-        // message: error.message ?? "Unable to submit biodata." for development
-        message: "Unable to submit biodata. Please check all the fiels and try again",
-      });
+      const message = "Unable to submit biodata. Please check all the fiels and try again";
+      setStatus({ type: "error", message });
+      setToast({ type: "error", message });
       return;
     }
 
-    setStatus({ type: "success", message: "Biodata saved successfully." });
+    const successMessage = "Biodata saved successfully.";
+    setStatus({ type: "success", message: successMessage });
+    setToast({ type: "success", message: successMessage });
     setExistingUserId(authUserId);
   };
 
   return (
-    <section id="biodata-form" className="glass-panel rounded-3xl p-6">
+    <>
+      
+      <section id="biodata-form" className="glass-panel rounded-3xl p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -402,29 +405,14 @@ export default function PatientBiodataForm() {
               className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-slate-900"
             />
           </label>
-          <label className="text-sm text-slate-700">
-            Date of Registration
-            <input
-              type="date"
-              name="date_of_registration"
-              value={formData.date_of_registration}
-              onChange={handleChange}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-slate-900"
-              required
-            />
-          </label>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="text-sm text-slate-600">
             {status.type === "loading" && "Submitting biodata..."}
-            {status.type === "success" && (
-              <span className="text-emerald-700">{status.message}</span>
-            )}
-            {status.type === "error" && (
-              <span className="text-rose-600">{status.message}</span>
-            )}
+            <span className="text-xl text-green-600">{status.type === "success" && "Biodata saved successfully."}</span>
           </div>
+          
           <button
             type="submit"
             disabled={status.type === "loading"}
@@ -434,6 +422,7 @@ export default function PatientBiodataForm() {
           </button>
         </div>
       </form>
-    </section>
+      </section>
+    </>
   );
 }
