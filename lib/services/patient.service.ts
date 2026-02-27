@@ -1,10 +1,9 @@
 import { createServerComponentClientClinical } from "@/lib/supabase/server";
 import { AppointmentWithRelations, ConsultationWithRelations, ClinicianWithHospital } from "@/types/clinical";
 
-
-const supabase = await createServerComponentClientClinical();
-
 export async function getPatientDashboardData(userId: string) {    
+    const supabase = await createServerComponentClientClinical();
+
     const { data: patientData, error: patientError } = await supabase
     .schema("clinical")
     .from("patients")
@@ -22,6 +21,7 @@ const today = new Date().toISOString().slice(0, 10);
   
 
 export async function getAppointmentsConsultationsData(patientId: string) {
+    const supabase = await createServerComponentClientClinical();
     
 {
     const [appointmentsResult, consultationsResult] = await Promise.all([
@@ -87,6 +87,8 @@ export async function getAppointmentsConsultationsData(patientId: string) {
 }
 
 export async function getClinicianData() {
+    const supabase = await createServerComponentClientClinical();
+
     const { data: clinicianData } = await supabase
     .schema("clinical")
     .from("clinicians")
