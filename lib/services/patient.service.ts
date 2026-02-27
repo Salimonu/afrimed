@@ -1,5 +1,5 @@
 import { createServerComponentClientClinical } from "@/lib/supabase/server";
-import { AppointmentWithRelations, ConsultationWithRelations, ClinicianWithHospital } from "@/app/types/clinical";
+import { AppointmentWithRelations, ConsultationWithRelations, ClinicianWithHospital } from "@/types/clinical";
 
 
 const supabase = await createServerComponentClientClinical();

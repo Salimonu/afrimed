@@ -1,15 +1,16 @@
+export const dynamic = "force-dynamic";
+
 import AppShell from "../ui/AppShell";
 import PatientBiodataModal from "../ui/PatientBiodataModal";
-import BookAppointmentSubmitButton from "./BookAppointmentSubmitButton";
 import TopToast from "./TopToast";
-
-import { bookAppointment } from "./actions";
-import { getSingleRelation, getStatusBadgeClass, formatAppointmentDate, formatAppointmentTime, formatAppointmentType, formatDateTime } from "@/lib/utils/appointments";
-import { PatientDashboardProps, AppointmentWithRelations, ConsultationWithRelations } from "../types/clinical";
+import { PatientDashboardProps, AppointmentWithRelations, ConsultationWithRelations } from "../../types/clinical";
 import { createServerComponentClientClinical } from "@/lib/supabase/server";
 import { getPatientDashboardData } from "@/lib/services/patient.service";
 import { getAppointmentsConsultationsData } from "@/lib/services/patient.service";
 import { getClinicianData } from "@/lib/services/patient.service";
+import UpcomingAppointments from "./components/UpcomingAppointments";
+import PrescriptionsList from "./components/PrescriptionsList";
+import BookAppointmentForm from "./components/BookAppointmentForm";
 
 
 export default async function PatientDashboard({
@@ -107,182 +108,9 @@ export default async function PatientDashboard({
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="glass-panel rounded-3xl p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                Upcoming appointments
-              </p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-900">
-                Your scheduled visits
-              </h2>
-              
-            </div>
-          </div>
-          <div className="mt-6 grid gap-3">
-            {upcomingAppointments.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600">
-                No upcoming appointments yet.
-              </div>
-            ) : (
-              upcomingAppointments.map((appointment) => {
-                const clinician = getSingleRelation(appointment.clinicians);
-                const hospital = getSingleRelation(appointment.hospitals);
-
-                const clinicianName = [clinician?.first_name, clinician?.last_name]
-                  .filter(
-                    (part): part is string =>
-                      typeof part === "string" && part.trim().length > 0
-                  )
-                  .join(" ")
-                  .trim();
-
-                return (
-                  <div
-                    key={appointment.id}
-                    className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {formatAppointmentType(appointment.appointment_type)} with{" "}
-                          {clinicianName || "Assigned clinician"}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-600">
-                          {formatAppointmentDate(appointment.appointment_date)} |{" "}
-                          {formatAppointmentTime(appointment.appointment_time)}
-                          {hospital?.name ? ` | ${hospital.name}` : ""}
-                        </p>
-                      </div>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-                          appointment.status
-                        )}`}
-                      >
-                        {appointment.status ?? "unknown"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-3xl p-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Book new appointment
-          </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
-            Request a new visit
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Choose your preferred date and time, then submit your request.
-          </p>
-          <form action={bookAppointment} className="mt-5 grid gap-4">
-            <label className="text-sm text-slate-700">
-              Available clinician
-              <select
-                name="clinician_id"
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-slate-900"
-                defaultValue=""
-                required={clinicians.length > 0}
-                disabled={clinicians.length === 0}
-              >
-                <option value="">
-                  {clinicians.length > 0
-                    ? "Select a clinician"
-                    : "No clinicians available right now"}
-                </option>
-                {clinicians.map((clinician) => (
-                  <option key={clinician.id} value={clinician.id}>
-                    {clinician.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm text-slate-700">
-              Appointment type
-              <select
-                name="appointment_type"
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-slate-900"
-                defaultValue="video"
-                required
-              >
-                <option value="physical">Physical</option>
-                <option value="chat">Chat</option>
-                <option value="video">Video</option>
-              </select>
-            </label>
-            <label className="text-sm text-slate-700">
-              Preferred date
-              <input
-                type="date"
-                name="appointment_date"
-                min={new Date().toISOString().slice(0, 10)}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-slate-900"
-                required
-              />
-            </label>
-            <label className="text-sm text-slate-700">
-              Preferred time
-              <input
-                type="time"
-                name="appointment_time"
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-slate-900"
-                required
-              />
-            </label>
-            <BookAppointmentSubmitButton />
-          </form>
-        </div>
-
-        <div className="glass-panel rounded-3xl p-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Prescriptions
-          </p>
-          <div className="mt-4 grid gap-3">
-            {consultations.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600">
-                No prescriptions available yet.
-              </div>
-            ) : (
-              consultations.map((consultation) => {
-                const appointment = getSingleRelation(consultation.appointments);
-                const clinician = getSingleRelation(appointment?.clinicians ?? null);
-                const clinicianName = [clinician?.first_name, clinician?.last_name]
-                  .filter(
-                    (part): part is string =>
-                      typeof part === "string" && part.trim().length > 0
-                  )
-                  .join(" ")
-                  .trim();
-
-                const startedAt = formatDateTime(consultation.started_at);
-                const endedAt = consultation.ended_at
-                  ? formatDateTime(consultation.ended_at)
-                  : null;
-
-                return (
-                  <div
-                    key={consultation.id}
-                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
-                  >
-                    <p className="text-sm font-semibold text-slate-900">
-                      {clinicianName || "Assigned clinician"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-600">
-                      {endedAt ? `${startedAt} - ${endedAt}` : startedAt}
-                    </p>
-                    <p className="mt-2 text-sm text-slate-700">
-                      {consultation.prescription?.trim() || "No prescription provided."}
-                    </p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <UpcomingAppointments upcomingAppointments={upcomingAppointments}/>
+        <BookAppointmentForm clinicians={clinicians}/>
+        <PrescriptionsList consultations={consultations}/>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
